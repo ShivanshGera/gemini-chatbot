@@ -1,13 +1,17 @@
 from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 import os
 
+# Load environment variables
 load_dotenv()
 
 api_key = os.getenv("GEMINI_API_KEY")
 
+# Create Gemini client
 client = genai.Client(api_key=api_key)
 
+# Store conversation history
 chat_history = []
 
 print("🤖 Gemini Chatbot")
@@ -32,18 +36,32 @@ while True:
         }
     )
 
-    # Variable to store the complete response
+    # Variable to store complete AI response
     full_response = ""
 
-    # Stream the response
+    # Generate streaming response with system instruction
     response = client.models.generate_content_stream(
         model="gemini-2.5-flash",
-        contents=chat_history
+        contents=chat_history,
+        config=types.GenerateContentConfig(
+            system_instruction="""
+            You are an expert AI tutor.
+
+            Your job is to teach programming and AI concepts.
+
+            Rules:
+            - Explain everything in simple language.
+            - Use real-world examples.
+            - Keep answers concise.
+            - If the topic is technical, explain step by step.
+            - Be friendly and encouraging.
+            """
+        )
     )
 
     print("\nGemini: ", end="")
 
-    # Print each chunk as it arrives
+    # Print response as it streams
     for chunk in response:
         if chunk.text:
             print(chunk.text, end="", flush=True)
@@ -51,7 +69,7 @@ while True:
 
     print("\n")
 
-    # Save Gemini's response to chat history
+    # Save model response
     chat_history.append(
         {
             "role": "model",
