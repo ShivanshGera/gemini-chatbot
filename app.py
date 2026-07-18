@@ -20,6 +20,7 @@ while True:
         print("Goodbye!")
         break
 
+    # Save user message
     chat_history.append(
         {
             "role": "user",
@@ -31,20 +32,32 @@ while True:
         }
     )
 
-    response = client.models.generate_content(
+    # Variable to store the complete response
+    full_response = ""
+
+    # Stream the response
+    response = client.models.generate_content_stream(
         model="gemini-2.5-flash",
         contents=chat_history
     )
 
-    print("\nGemini:", response.text)
-    print()
+    print("\nGemini: ", end="")
 
+    # Print each chunk as it arrives
+    for chunk in response:
+        if chunk.text:
+            print(chunk.text, end="", flush=True)
+            full_response += chunk.text
+
+    print("\n")
+
+    # Save Gemini's response to chat history
     chat_history.append(
         {
             "role": "model",
             "parts": [
                 {
-                    "text": response.text
+                    "text": full_response
                 }
             ]
         }
